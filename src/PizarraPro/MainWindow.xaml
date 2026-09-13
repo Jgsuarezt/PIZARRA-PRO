@@ -1,0 +1,251 @@
+<Window x:Class="PizarraPro.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:PizarraPro.Converters"
+        Title="{Binding WindowTitle}"
+        Height="820" Width="1360"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF1E1E1E"
+        Closing="MainWindow_Closing">
+    <Window.Resources>
+        <conv:EnumToBooleanConverter x:Key="EnumToBool"/>
+        <conv:ColorToBrushConverter x:Key="ColorToBrush"/>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="ToolButtonStyle" TargetType="RadioButton">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="#FF3C3C3C" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF0A84FF"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF505050"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FF3C3C3C"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <DockPanel>
+            <Menu DockPanel.Dock="Top" Background="#FF2D2D30" Foreground="Black">
+                <MenuItem Header="_Archivo">
+                    <MenuItem Header="Nuevo _documento" Click="NewDocument_Click"/>
+                    <MenuItem Header="Nueva _página en blanco" InputGestureText="Ctrl+N" Click="AddPage_Click"/>
+                    <Separator/>
+                    <MenuItem Header="_Abrir..." InputGestureText="Ctrl+O" Click="Open_Click"/>
+                    <MenuItem Header="_Guardar" InputGestureText="Ctrl+S" Click="Save_Click"/>
+                    <MenuItem Header="Guardar _como..." InputGestureText="Ctrl+Shift+S" Click="SaveAs_Click"/>
+                    <Separator/>
+                    <MenuItem Header="_Importar PDF..." Click="ImportPdf_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Exportar página como _PNG..." Click="ExportPng_Click"/>
+                    <MenuItem Header="Exportar documento como PD_F..." Click="ExportPdf_Click"/>
+                    <Separator/>
+                    <MenuItem Header="_Salir" Click="Exit_Click"/>
+                </MenuItem>
+                <MenuItem Header="_Edición">
+                    <MenuItem Header="_Deshacer" InputGestureText="Ctrl+Z" Command="{Binding UndoCommand}"/>
+                    <MenuItem Header="_Rehacer" InputGestureText="Ctrl+Y" Command="{Binding RedoCommand}"/>
+                </MenuItem>
+                <MenuItem Header="_Ver">
+                    <MenuItem Header="Acercar" InputGestureText="Ctrl++" Click="ZoomIn_Click"/>
+                    <MenuItem Header="Alejar" InputGestureText="Ctrl+-" Click="ZoomOut_Click"/>
+                    <MenuItem Header="Ajustar a la pantalla" InputGestureText="Ctrl+0" Click="ZoomFit_Click"/>
+                </MenuItem>
+                <MenuItem Header="_Página">
+                    <MenuItem Header="Página anterior" Command="{Binding PrevPageCommand}"/>
+                    <MenuItem Header="Página siguiente" Command="{Binding NextPageCommand}"/>
+                    <MenuItem Header="Duplicar página" Command="{Binding DuplicatePageCommand}"/>
+                    <MenuItem Header="Eliminar página" Command="{Binding DeletePageCommand}"/>
+                </MenuItem>
+                <MenuItem Header="A_yuda">
+                    <MenuItem Header="Acerca de Pizarra Pro" Click="About_Click"/>
+                </MenuItem>
+            </Menu>
+
+            <ToolBarTray DockPanel.Dock="Top" Background="#FF2D2D30">
+                <ToolBar Background="#FF2D2D30" Band="1">
+                    <RadioButton Content="Seleccionar" GroupName="Tools" Style="{StaticResource ToolButtonStyle}" ToolTip="Seleccionar / lazo"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Select}"/>
+                    <RadioButton Content="Mano" GroupName="Tools" Style="{StaticResource ToolButtonStyle}" ToolTip="Desplazar el lienzo"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Pan}"/>
+                    <RadioButton Content="Lápiz" GroupName="Tools" Style="{StaticResource ToolButtonStyle}"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Pen}"/>
+                    <RadioButton Content="Resaltador" GroupName="Tools" Style="{StaticResource ToolButtonStyle}"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Highlighter}"/>
+                    <RadioButton Content="Borrador" GroupName="Tools" Style="{StaticResource ToolButtonStyle}"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Eraser}"/>
+                    <RadioButton Content="Rect." GroupName="Tools" Style="{StaticResource ToolButtonStyle}" ToolTip="Rectángulo"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Rectangle}"/>
+                    <RadioButton Content="Elipse" GroupName="Tools" Style="{StaticResource ToolButtonStyle}" ToolTip="Elipse"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Ellipse}"/>
+                    <RadioButton Content="Línea" GroupName="Tools" Style="{StaticResource ToolButtonStyle}" ToolTip="Línea"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Line}"/>
+                    <RadioButton Content="Flecha" GroupName="Tools" Style="{StaticResource ToolButtonStyle}" ToolTip="Flecha"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Arrow}"/>
+                    <RadioButton Content="Texto" GroupName="Tools" Style="{StaticResource ToolButtonStyle}"
+                                 IsChecked="{Binding CurrentTool, Converter={StaticResource EnumToBool}, ConverterParameter=Text}"/>
+
+                    <Separator/>
+
+                    <StackPanel x:Name="PaletteHost" Orientation="Horizontal"/>
+                    <Button x:Name="MoreColorsButton" Content="Más colores..." Style="{StaticResource DarkButtonStyle}" Click="MoreColors_Click"/>
+                    <Rectangle Width="20" Height="20" Margin="6,0" Stroke="White" StrokeThickness="1"
+                               Fill="{Binding StrokeColor, Converter={StaticResource ColorToBrush}}"/>
+
+                    <Separator/>
+
+                    <TextBlock Text="Grosor" VerticalAlignment="Center" Margin="4,0"/>
+                    <Slider Minimum="1" Maximum="40" Width="120" VerticalAlignment="Center" Value="{Binding StrokeThickness}"/>
+
+                    <Separator/>
+
+                    <TextBlock Text="Tamaño de texto" VerticalAlignment="Center" Margin="4,0"/>
+                    <Slider Minimum="8" Maximum="96" Width="100" VerticalAlignment="Center" Value="{Binding TextFontSize}"/>
+                </ToolBar>
+            </ToolBarTray>
+
+            <StatusBar DockPanel.Dock="Bottom" Background="#FF007ACC">
+                <StatusBarItem>
+                    <TextBlock Text="{Binding PageIndicator}"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem>
+                    <TextBlock>
+                        <Run Text="Zoom: "/>
+                        <Run Text="{Binding ZoomPercent, StringFormat={}{0:0}%}"/>
+                    </TextBlock>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem>
+                    <TextBlock Text="{Binding CurrentTool}"/>
+                </StatusBarItem>
+            </StatusBar>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="190"/>
+                    <ColumnDefinition Width="4"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="4"/>
+                    <ColumnDefinition Width="240"/>
+                </Grid.ColumnDefinitions>
+
+                <DockPanel Grid.Column="0" Background="#FF252526">
+                    <TextBlock Text="Páginas" FontWeight="Bold" Margin="8,8,8,4" DockPanel.Dock="Top"/>
+                    <StackPanel DockPanel.Dock="Bottom" Margin="6">
+                        <Button Content="+ Página en blanco" Style="{StaticResource DarkButtonStyle}" Click="AddPage_Click"/>
+                        <Button Content="Importar PDF..." Style="{StaticResource DarkButtonStyle}" Click="ImportPdf_Click"/>
+                        <Button Content="Duplicar" Style="{StaticResource DarkButtonStyle}" Command="{Binding DuplicatePageCommand}"/>
+                        <Button Content="Eliminar" Style="{StaticResource DarkButtonStyle}" Command="{Binding DeletePageCommand}"/>
+                    </StackPanel>
+                    <ListBox x:Name="PagesListBox" ItemsSource="{Binding Pages}" SelectedIndex="{Binding CurrentPageIndex, Mode=TwoWay}"
+                             Margin="4" Background="Transparent" BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#FF333333" CornerRadius="4" Padding="6" Margin="2">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding KindLabel}" Foreground="#FFAAAAAA" FontSize="10"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+
+                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="#FF3C3C3C"/>
+
+                <Border Grid.Column="2" x:Name="ViewportBorder" ClipToBounds="True" Background="#FF2B2B2B"
+                        MouseWheel="ViewportBorder_MouseWheel"
+                        PreviewMouseDown="ViewportBorder_PreviewMouseDown"
+                        PreviewMouseMove="ViewportBorder_PreviewMouseMove"
+                        PreviewMouseUp="ViewportBorder_PreviewMouseUp">
+                    <Grid x:Name="BoardHost" RenderTransformOrigin="0,0" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="ScaleT" ScaleX="1" ScaleY="1"/>
+                                <TranslateTransform x:Name="TranslateT" X="0" Y="0"/>
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <Border x:Name="PageSurface" Background="White" BorderBrush="#FF888888" BorderThickness="1"
+                                Width="{Binding CurrentPage.Width}" Height="{Binding CurrentPage.Height}">
+                            <Grid>
+                                <Image x:Name="BackgroundImage" Source="{Binding CurrentPage.Background}" Stretch="Fill"
+                                       Width="{Binding CurrentPage.Width}" Height="{Binding CurrentPage.Height}"/>
+                                <Grid x:Name="LayersHost"/>
+                                <Canvas x:Name="OverlayCanvas" Background="Transparent" IsHitTestVisible="False"
+                                        Width="{Binding CurrentPage.Width}" Height="{Binding CurrentPage.Height}"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" Background="#FF3C3C3C"/>
+
+                <DockPanel Grid.Column="4" Background="#FF252526">
+                    <TextBlock Text="Capas" FontWeight="Bold" Margin="8,8,8,4" DockPanel.Dock="Top"/>
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="6">
+                        <Button Content="+ Capa" Style="{StaticResource DarkButtonStyle}" Command="{Binding AddLayerCommand}"/>
+                        <Button Content="Eliminar" Style="{StaticResource DarkButtonStyle}" Command="{Binding RemoveLayerCommand}"
+                                CommandParameter="{Binding ElementName=LayersListBox, Path=SelectedItem}"/>
+                        <Button Content="▲" Style="{StaticResource DarkButtonStyle}" Command="{Binding MoveLayerUpCommand}"
+                                CommandParameter="{Binding ElementName=LayersListBox, Path=SelectedItem}"/>
+                        <Button Content="▼" Style="{StaticResource DarkButtonStyle}" Command="{Binding MoveLayerDownCommand}"
+                                CommandParameter="{Binding ElementName=LayersListBox, Path=SelectedItem}"/>
+                    </StackPanel>
+                    <ListBox x:Name="LayersListBox" ItemsSource="{Binding CurrentPage.Layers}"
+                             SelectedItem="{Binding CurrentPage.ActiveLayer, Mode=TwoWay}"
+                             Background="Transparent" BorderThickness="0" Margin="4">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#FF333333" CornerRadius="4" Padding="6" Margin="2">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox IsChecked="{Binding IsVisible}" ToolTip="Visible" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                            <ToggleButton IsChecked="{Binding IsLocked}" Content="Bloq" Width="40" Height="22"
+                                                          Margin="0,0,4,0" ToolTip="Bloquear capa"/>
+                                            <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Background="Transparent"
+                                                     Foreground="White" BorderThickness="0" Width="100"/>
+                                        </StackPanel>
+                                        <Slider Minimum="0" Maximum="1" Value="{Binding Opacity}" Width="150" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Grid>
+        </DockPanel>
+
+        <Border Background="#CC000000" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="{Binding BusyMessage}" FontSize="18" HorizontalAlignment="Center"/>
+                <ProgressBar IsIndeterminate="True" Width="220" Height="8" Margin="0,12,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
