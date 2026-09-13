@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -39,3 +42,14 @@ jobs:
         with:
           name: PizarraPro-Setup
           path: dist/PizarraPro-Setup.exe
+
+      - name: Publish GitHub Release with installer
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}" dist/PizarraPro-Setup.exe \
+            --repo "${{ github.repository }}" \
+            --title "Pizarra Pro - build ${{ github.run_number }}" \
+            --notes "Instalador de Windows generado automáticamente por CI desde el commit ${{ github.sha }}." \
+            --latest
