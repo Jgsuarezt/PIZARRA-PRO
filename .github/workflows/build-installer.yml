@@ -1,0 +1,41 @@
+name: Build installer
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore src/PizarraPro/PizarraPro.csproj
+
+      - name: Build
+        run: dotnet build src/PizarraPro/PizarraPro.csproj -c Release --no-restore
+
+      - name: Publish (self-contained win-x64)
+        run: dotnet publish src/PizarraPro/PizarraPro.csproj -c Release -r win-x64 --self-contained true -o publish
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\PizarraPro.iss'
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PizarraPro-Setup
+          path: dist/PizarraPro-Setup.exe
