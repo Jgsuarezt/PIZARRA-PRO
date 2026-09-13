@@ -293,10 +293,9 @@ public partial class MainWindow : Window
         InkCanvas.SetLeft(block, element.X);
         InkCanvas.SetTop(block, element.Y);
 
-        block.MouseLeftButtonDown += (_, e) => TextVisual_MouseLeftButtonDown(element, block, e);
+        block.MouseLeftButtonDown += (_, e) => TextVisual_MouseLeftButtonDown(layer, element, block, e);
         block.MouseLeftButtonUp += (s, e) => TextVisual_MouseLeftButtonUp(s, e);
         block.MouseMove += (_, e) => TextVisual_MouseMove(element, block, e);
-        block.MouseDoubleClick += (_, e) => TextVisual_MouseDoubleClick(layer, element, block, e);
 
         ink.Children.Add(block);
         _textVisuals[element] = block;
@@ -388,9 +387,17 @@ public partial class MainWindow : Window
         OverlayCanvas.IsHitTestVisible = false;
     }
 
-    private void TextVisual_MouseLeftButtonDown(TextElementViewModel element, TextBlock block, MouseButtonEventArgs e)
+    private void TextVisual_MouseLeftButtonDown(LayerViewModel layer, TextElementViewModel element, TextBlock block, MouseButtonEventArgs e)
     {
         if (ViewModel.CurrentTool != ToolType.Select) return;
+
+        if (e.ClickCount >= 2)
+        {
+            e.Handled = true;
+            BeginTextEdit(layer, element, block);
+            return;
+        }
+
         _selectedTextElement = element;
         _isDraggingText = true;
         _dragStartMouse = e.GetPosition(PageSurface);
@@ -419,11 +426,8 @@ public partial class MainWindow : Window
         ViewModel.IsDirty = true;
     }
 
-    private void TextVisual_MouseDoubleClick(LayerViewModel layer, TextElementViewModel element, TextBlock block, MouseButtonEventArgs e)
+    private void BeginTextEdit(LayerViewModel layer, TextElementViewModel element, TextBlock block)
     {
-        if (ViewModel.CurrentTool != ToolType.Select) return;
-        e.Handled = true;
-
         var tb = new TextBox
         {
             Text = element.Text,
